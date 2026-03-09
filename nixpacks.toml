@@ -1,0 +1,5 @@
+[phases.build]
+cmds = ['npm install -g openclaw']
+
+[phases.setup]
+nixPkgs = ['nodejs_20']
