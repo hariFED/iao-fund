@@ -25,9 +25,9 @@ WORKDIR /data/.openclaw/workspace
 # Expose gateway port
 EXPOSE 8080
 
-# Run OpenClaw gateway in foreground mode
+# Run OpenClaw gateway in foreground mode, binding to 0.0.0.0 for Railway
 CMD ["openclaw", "gateway", "run", \
-     "--bind", "loopback", \
+     "--bind", "0.0.0.0", \
      "--port", "8080", \
      "--auth", "token", \
      "--token", "iao-fund-gateway-token-2026", \
