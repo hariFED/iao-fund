@@ -30,5 +30,5 @@ WORKDIR /data/.openclaw/workspace
 # Expose the wrapper port
 EXPOSE 8080
 
-# Start both gateway and wrapper
-CMD ["sh", "-c", "openclaw gateway run --bind loopback --auth token --token iao-fund-gateway-token-2026 & sleep 5 && node /wrapper.js"]
+# Start both gateway (loopback only) and wrapper (public)
+CMD ["sh", "-c", "openclaw gateway run --auth token --token iao-fund-gateway-token-2026 & sleep 5 && node /wrapper.js"]
