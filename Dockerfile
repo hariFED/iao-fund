@@ -8,13 +8,12 @@ RUN apt-get update && apt-get install -y git curl ca-certificates python3 make g
 RUN npm install -g openclaw
 
 # Create directories
-RUN mkdir -p /data/.openclaw/workspace
+RUN mkdir -p /data/.openclaw/workspace /data/.openclaw/canvas
 
 # Set environment variables
 ENV OPENCLAW_STATE_DIR=/data/.openclaw
 ENV OPENCLAW_WORKSPACE_DIR=/data/.openclaw/workspace
 ENV OPENCLAW_GATEWAY_TOKEN=iao-fund-gateway-token-2026
-ENV OPENCLAW_CONFIG_PATH=/data/.openclaw/openclaw.json
 ENV NODE_ENV=production
 
 # Copy workspace files
@@ -29,5 +28,9 @@ WORKDIR /data/.openclaw/workspace
 # Expose both gateway and canvas ports
 EXPOSE 8080 8082
 
-# Run OpenClaw gateway in foreground mode
-CMD ["openclaw", "gateway", "run", "--allow-unconfigured"]
+# Run OpenClaw gateway with explicit bind to 0.0.0.0 and port 8080
+CMD ["openclaw", "gateway", "run", \
+     "--bind", "0.0.0.0", \
+     "--port", "8080", \
+     "--auth", "token", \
+     "--token", "iao-fund-gateway-token-2026"]
