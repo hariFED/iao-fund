@@ -15,22 +15,20 @@ ENV OPENCLAW_STATE_DIR=/data/.openclaw
 ENV OPENCLAW_WORKSPACE_DIR=/data/.openclaw/workspace
 ENV OPENCLAW_GATEWAY_TOKEN=iao-fund-gateway-token-2026
 ENV NODE_ENV=production
+ENV PORT=8080
 
 # Copy workspace files
 COPY . /data/.openclaw/workspace/
 
 # Copy config to state dir
 COPY openclaw.json /data/.openclaw/openclaw.json
+COPY wrapper.js /wrapper.js
 
 # Set working directory
 WORKDIR /data/.openclaw/workspace
 
-# Expose both gateway and canvas ports
-EXPOSE 8080 8082
+# Expose the wrapper port
+EXPOSE 8080
 
-# Run OpenClaw gateway with explicit bind to 0.0.0.0 and port 8080
-CMD ["openclaw", "gateway", "run", \
-     "--bind", "0.0.0.0", \
-     "--port", "8080", \
-     "--auth", "token", \
-     "--token", "iao-fund-gateway-token-2026"]
+# Start both gateway and wrapper
+CMD ["sh", "-c", "openclaw gateway run --bind loopback --auth token --token iao-fund-gateway-token-2026 & sleep 5 && node /wrapper.js"]
