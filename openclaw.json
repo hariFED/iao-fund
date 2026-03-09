@@ -1,0 +1,16 @@
+{
+  "gateway": {
+    "port": 8080,
+    "mode": "local",
+    "bind": "0.0.0.0",
+    "auth": {
+      "mode": "token",
+      "token": "iao-fund-gateway-token-2026"
+    }
+  },
+  "browser": {
+    "port": 8082,
+    "host": "0.0.0.0"
+  },
+  "workspace": "/data/.openclaw/workspace"
+}
