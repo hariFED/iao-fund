@@ -1,25 +1,23 @@
 FROM node:22-slim
 
-# Install git and curl for OpenClaw
+# Install git and curl
 RUN apt-get update && apt-get install -y git curl && rm -rf /var/lib/apt/lists/*
-
-# Install OpenClaw globally
-RUN npm install -g openclaw
 
 # Create workspace directory
 WORKDIR /root/.openclaw/workspace
 
-# Copy all memory files
+# Copy all files
 COPY . /root/.openclaw/workspace/
 
-# Set environment variables (these will be overridden by Railway)
+# Set environment variables
 ENV IAO_API_BASE=https://iao-fund.vercel.app
 ENV PLATFORM_WALLET=8i3Mept58tXY85UeP1AeH3yS6DqD9GK4o8NsMapHG7w4
 ENV IAO_PROGRAM_ID=DKhkk9pdyEE5XAvBjpjaB642RkpxJXqRqa7qTT6PmAuw
 ENV SOLANA_RPC_URL=https://api.devnet.solana.com
+ENV OPENCLAW_WORKSPACE=/root/.openclaw/workspace
 
-# Expose gateway port
+# Expose port (for health checks)
 EXPOSE 8080
 
-# Start OpenClaw gateway
-CMD ["openclaw", "gateway", "start"]
+# Run heartbeat script
+CMD ["node", "heartbeat.js"]
