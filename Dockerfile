@@ -1,23 +1,34 @@
 FROM node:22-slim
 
-# Install git and curl
-RUN apt-get update && apt-get install -y git curl && rm -rf /var/lib/apt/lists/*
+# Install git, curl, and other dependencies
+RUN apt-get update && apt-get install -y git curl ca-certificates python3 make g++ \
+    && rm -rf /var/lib/apt/lists/*
 
-# Create workspace directory
-WORKDIR /root/.openclaw/workspace
+# Install OpenClaw globally
+RUN npm install -g openclaw
 
-# Copy all files
-COPY . /root/.openclaw/workspace/
+# Create directories
+RUN mkdir -p /data/.openclaw/workspace
 
 # Set environment variables
-ENV IAO_API_BASE=https://iao-fund.vercel.app
-ENV PLATFORM_WALLET=8i3Mept58tXY85UeP1AeH3yS6DqD9GK4o8NsMapHG7w4
-ENV IAO_PROGRAM_ID=DKhkk9pdyEE5XAvBjpjaB642RkpxJXqRqa7qTT6PmAuw
-ENV SOLANA_RPC_URL=https://api.devnet.solana.com
-ENV OPENCLAW_WORKSPACE=/root/.openclaw/workspace
+ENV OPENCLAW_STATE_DIR=/data/.openclaw
+ENV OPENCLAW_WORKSPACE_DIR=/data/.openclaw/workspace
+ENV OPENCLAW_GATEWAY_TOKEN=iao-fund-gateway-token-2026
+ENV NODE_ENV=production
 
-# Expose port (for health checks)
+# Copy workspace files
+COPY . /data/.openclaw/workspace/
+
+# Set working directory
+WORKDIR /data/.openclaw/workspace
+
+# Expose gateway port
 EXPOSE 8080
 
-# Run heartbeat script
-CMD ["node", "heartbeat.js"]
+# Run OpenClaw gateway in foreground mode
+CMD ["openclaw", "gateway", "run", \
+     "--bind", "loopback", \
+     "--port", "8080", \
+     "--auth", "token", \
+     "--token", "iao-fund-gateway-token-2026", \
+     "--allow-unconfigured"]
