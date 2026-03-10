@@ -10,17 +10,21 @@ RUN mkdir -p /data/.openclaw/workspace /data/.openclaw/canvas
 ENV OPENCLAW_STATE_DIR=/data/.openclaw
 ENV OPENCLAW_WORKSPACE_DIR=/data/.openclaw/workspace
 ENV OPENCLAW_GATEWAY_TOKEN=iao-fund-gateway-token-2026
-ENV OPENCLAW_TRUSTED_PROXIES=*
 ENV NODE_ENV=production
 ENV PORT=8080
 
+# Copy config first (will be overridden by workspace copy if exists)
+COPY openclaw.json /data/.openclaw/openclaw.json
+
+# Copy workspace files
 COPY . /data/.openclaw/workspace/
 
+# Re-copy config to ensure it's correct (workspace copy might have old version)
 COPY openclaw.json /data/.openclaw/openclaw.json
-COPY wrapper.js /wrapper.js
 
 WORKDIR /data/.openclaw/workspace
 
 EXPOSE 8080
 
-CMD ["sh", "-c", "openclaw gateway run --allow-unconfigured --auth token --token iao-fund-gateway-token-2026 --port $PORT --bind lan"]
+# Use exec form to ensure proper signal handling
+CMD ["sh", "-c", "openclaw gateway run --allow-unconfigured --port $PORT --bind lan"]
