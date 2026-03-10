@@ -17,7 +17,18 @@
   },
   "agents": {
     "defaults": {
-      "workspace": "/data/.openclaw/workspace"
+      "workspace": "/data/.openclaw/workspace",
+      "model": {
+        "primary": "anthropic/claude-opus-4"
+      }
+    }
+  },
+  "auth": {
+    "profiles": {
+      "anthropic:default": {
+        "provider": "anthropic",
+        "mode": "api_key"
+      }
     }
   }
 }
