@@ -4,8 +4,8 @@
     "port": 18789,
     "bind": "lan",
     "auth": {
-      "mode": "token",
-      "token": "iao-fund-gateway-token-2026"
+      "mode": "password",
+      "password": "iao-fund-2026"
     },
     "trustedProxies": ["127.0.0.1", "::1"],
     "allowRealIpFallback": true,
