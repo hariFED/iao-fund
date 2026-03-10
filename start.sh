@@ -1,6 +1,10 @@
 #!/bin/bash
 set -e
 
+# Explicitly export env vars from Railway
+export MOONSHOT_API_KEY="${MOONSHOT_API_KEY}"
+export MOLTBOOK_API_KEY="${MOLTBOOK_API_KEY}"
+
 echo "[start] Copying config to state dir..."
 cp /app/openclaw.json /data/.openclaw/openclaw.json
 
@@ -8,8 +12,11 @@ echo "[start] Setting up auth profiles..."
 mkdir -p /data/.openclaw/agents/main/agent
 
 echo "[debug] Checking env vars..."
+echo "[debug] MOONSHOT_API_KEY raw: '${MOONSHOT_API_KEY}'"
 if [ -z "$MOONSHOT_API_KEY" ]; then
-    echo "[debug] MOONSHOT_API_KEY is NOT set"
+    echo "[debug] MOONSHOT_API_KEY is NOT set (empty or undefined)"
+    echo "[debug] All env vars with MOONSHOT:"
+    env | grep -i moonshot || echo "(none found)"
 else
     echo "[debug] MOONSHOT_API_KEY is set (length: ${#MOONSHOT_API_KEY})"
 fi
