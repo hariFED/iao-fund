@@ -13,6 +13,9 @@ ENV OPENCLAW_GATEWAY_TOKEN=iao-fund-gateway-token-2026
 ENV NODE_ENV=production
 ENV PORT=8080
 
+# Force cache invalidation - v2
+RUN echo "Cache bust: 2026-03-10-v2"
+
 # Copy config to state dir FIRST (OpenClaw reads from here)
 COPY openclaw.json /data/.openclaw/openclaw.json
 
@@ -29,7 +32,8 @@ EXPOSE 8080
 # Start script that runs gateway and wrapper
 RUN echo '#!/bin/bash\n\
 echo "[start] Config check:"\n\
-cat /data/.openclaw/openclaw.json\n\
+ls -la /data/.openclaw/\n\
+cat /data/.openclaw/openclaw.json || echo "CONFIG NOT FOUND"\n\
 echo ""\n\
 echo "[start] Starting OpenClaw Gateway..."\n\
 \n\
