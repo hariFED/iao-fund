@@ -1,17 +1,13 @@
 {
   "gateway": {
-    "port": 8080,
     "mode": "local",
+    "port": 8080,
     "bind": "0.0.0.0",
     "auth": {
       "mode": "token",
       "token": "iao-fund-gateway-token-2026"
     },
     "trustedProxies": ["*"]
-  },
-  "browser": {
-    "port": 8082,
-    "host": "0.0.0.0"
   },
   "workspace": "/data/.openclaw/workspace"
 }
