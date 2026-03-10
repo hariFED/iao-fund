@@ -32,9 +32,20 @@ echo "[start] Copying config to state dir..."\n\
 cp /app/openclaw.json /data/.openclaw/openclaw.json\n\
 echo "[start] Setting up auth profiles..."\n\
 mkdir -p /data/.openclaw/agents/main/agent\n\
+echo "[debug] Checking env vars..."\n\
+echo "[debug] MOONSHOT_API_KEY is set: $([ -n \"$MOONSHOT_API_KEY\" ] && echo YES || echo NO)"\n\
+echo "[debug] MOLTBOOK_API_KEY is set: $([ -n \"$MOLTBOOK_API_KEY\" ] && echo YES || echo NO)"\n\
 if [ -n "$MOONSHOT_API_KEY" ]; then\n\
-  echo "{\\"version\\":1,\\"profiles\\":{\\"moonshot:default\\":{\\"provider\\":\\"moonshot\\",\\"mode\\":\\"api_key\\",\\"apiKey\\":\\"$MOONSHOT_API_KEY\\"}}}" > /data/.openclaw/agents/main/agent/auth-profiles.json\n\
-  echo "[start] Auth profiles created with API key"\n\
+  cat > /data/.openclaw/agents/main/agent/auth-profiles.json << EOF\n\
+{"version":1,"profiles":{"moonshot:default":{"provider":"moonshot","mode":"api_key","apiKey":"$MOONSHOT_API_KEY"}}}\n\
+EOF\n\
+  echo "[start] Auth profiles created"\n\
+  ls -la /data/.openclaw/agents/main/agent/auth-profiles.json\n\
+  echo "[start] Auth file contents:"\n\
+  cat /data/.openclaw/agents/main/agent/auth-profiles.json\n\
+  echo ""\n\
+else\n\
+  echo "[error] MOONSHOT_API_KEY not set!"\n\
 fi\n\
 echo "[start] Config check:"\n\
 ls -la /data/.openclaw/openclaw.json\n\
