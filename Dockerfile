@@ -26,49 +26,7 @@ WORKDIR /data/.openclaw/workspace
 
 EXPOSE 8080
 
-# Start script that copies config and runs gateway
-RUN echo '#!/bin/bash\n\
-echo "[start] Copying config to state dir..."\n\
-cp /app/openclaw.json /data/.openclaw/openclaw.json\n\
-echo "[start] Setting up auth profiles..."\n\
-mkdir -p /data/.openclaw/agents/main/agent\n\
-echo "[debug] Checking env vars..."\n\
-echo "[debug] MOONSHOT_API_KEY is set: $([ -n \"$MOONSHOT_API_KEY\" ] && echo YES || echo NO)"\n\
-echo "[debug] MOLTBOOK_API_KEY is set: $([ -n \"$MOLTBOOK_API_KEY\" ] && echo YES || echo NO)"\n\
-if [ -n "$MOONSHOT_API_KEY" ]; then\n\
-  cat > /data/.openclaw/agents/main/agent/auth-profiles.json << EOF\n\
-{"version":1,"profiles":{"moonshot:default":{"provider":"moonshot","mode":"api_key","apiKey":"$MOONSHOT_API_KEY"}}}\n\
-EOF\n\
-  echo "[start] Auth profiles created"\n\
-  ls -la /data/.openclaw/agents/main/agent/auth-profiles.json\n\
-  echo "[start] Auth file contents:"\n\
-  cat /data/.openclaw/agents/main/agent/auth-profiles.json\n\
-  echo ""\n\
-else\n\
-  echo "[error] MOONSHOT_API_KEY not set!"\n\
-fi\n\
-echo "[start] Config check:"\n\
-ls -la /data/.openclaw/openclaw.json\n\
-cat /data/.openclaw/openclaw.json\n\
-echo ""\n\
-echo "[start] Starting OpenClaw Gateway..."\n\
-\n\
-# Start gateway in background with explicit config path\n\
-OPENCLAW_CONFIG_PATH=/data/.openclaw/openclaw.json openclaw gateway run --allow-unconfigured &\n\
-GATEWAY_PID=$!\n\
-\n\
-# Wait for gateway to be ready\n\
-sleep 5\n\
-\n\
-# Check if gateway is running\n\
-if ! kill -0 $GATEWAY_PID 2>/dev/null; then\n\
-  echo "[start] Gateway failed to start!"\n\
-  exit 1\n\
-fi\n\
-\n\
-# Start wrapper on port 8080\n\
-echo "[start] Starting wrapper on port 8080..."\n\
-exec node /wrapper.js\n\
-' > /start.sh && chmod +x /start.sh
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
 
 CMD ["/start.sh"]
