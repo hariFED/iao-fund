@@ -9,8 +9,7 @@
     },
     "trustedProxies": ["0.0.0.0/0", "::/0"],
     "controlUi": {
-      "allowedOrigins": ["*"],
-      "dangerouslyAllowHostHeaderOriginFallback": true
+      "enabled": false
     }
   },
   "workspace": "/data/.openclaw/workspace"

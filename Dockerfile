@@ -13,18 +13,42 @@ ENV OPENCLAW_GATEWAY_TOKEN=iao-fund-gateway-token-2026
 ENV NODE_ENV=production
 ENV PORT=8080
 
-# Copy config first (will be overridden by workspace copy if exists)
+# Copy config first
 COPY openclaw.json /data/.openclaw/openclaw.json
 
 # Copy workspace files
 COPY . /data/.openclaw/workspace/
 
-# Re-copy config to ensure it's correct (workspace copy might have old version)
+# Re-copy config to ensure it's correct
 COPY openclaw.json /data/.openclaw/openclaw.json
+COPY wrapper.js /wrapper.js
 
 WORKDIR /data/.openclaw/workspace
 
 EXPOSE 8080
 
-# Use exec form to ensure proper signal handling
-CMD ["sh", "-c", "openclaw gateway run --allow-unconfigured --port $PORT --bind lan"]
+# Start script that runs gateway and wrapper
+RUN echo '#!/bin/bash\n\
+echo "[start] Starting OpenClaw Gateway..."\n\
+\n\
+# Start gateway in background on port 18789 (internal only)\n\
+openclaw gateway run --allow-unconfigured --port 18789 --bind lan &\n\
+GATEWAY_PID=$!\n\
+\n\
+# Wait for gateway to be ready\n\
+sleep 5\n\
+\n\
+# Check if gateway is running\n\
+if ! kill -0 $GATEWAY_PID 2>/dev/null; then\n\
+  echo "[start] Gateway failed to start, trying with loopback..."\n\
+  openclaw gateway run --allow-unconfigured --port 18789 --bind loopback &\n\
+  GATEWAY_PID=$!\n\
+  sleep 5\n\
+fi\n\
+\n\
+# Start wrapper on port 8080\n\
+echo "[start] Starting wrapper on port 8080..."\n\
+exec node /wrapper.js\n\
+' > /start.sh && chmod +x /start.sh
+
+CMD ["/start.sh"]
