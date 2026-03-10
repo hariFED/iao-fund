@@ -1,7 +1,6 @@
 const http = require('http');
 const https = require('https');
 const net = require('net');
-const url = require('url');
 
 const PORT = process.env.PORT || 8080;
 const GATEWAY_HOST = '127.0.0.1';
@@ -9,6 +8,18 @@ const GATEWAY_PORT = 18789;
 
 console.log(`[wrapper] Starting on 0.0.0.0:${PORT}`);
 console.log(`[wrapper] Proxying to ${GATEWAY_HOST}:${GATEWAY_PORT}`);
+
+// Headers to strip to make the gateway think this is a local connection
+const PROXY_HEADERS = [
+  'x-forwarded-for',
+  'x-forwarded-host',
+  'x-forwarded-proto',
+  'x-forwarded-port',
+  'x-real-ip',
+  'x-forwarded-server',
+  'forwarded',
+  'via'
+];
 
 // Simple HTTP proxy server
 const server = http.createServer((req, res) => {
@@ -19,16 +30,20 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // Strip proxy headers to make gateway treat as local
+  const headers = { ...req.headers };
+  for (const h of PROXY_HEADERS) {
+    delete headers[h];
+  }
+  headers.host = `${GATEWAY_HOST}:${GATEWAY_PORT}`;
+
   // Proxy HTTP requests to gateway
   const options = {
     hostname: GATEWAY_HOST,
     port: GATEWAY_PORT,
     path: req.url,
     method: req.method,
-    headers: {
-      ...req.headers,
-      host: `${GATEWAY_HOST}:${GATEWAY_PORT}`,
-    }
+    headers: headers
   };
 
   const proxyReq = http.request(options, (proxyRes) => {
@@ -49,15 +64,19 @@ const server = http.createServer((req, res) => {
 server.on('upgrade', (req, socket, head) => {
   console.log('[wrapper] WebSocket upgrade request:', req.url);
   
+  // Strip proxy headers
+  const headers = { ...req.headers };
+  for (const h of PROXY_HEADERS) {
+    delete headers[h];
+  }
+  headers.host = `${GATEWAY_HOST}:${GATEWAY_PORT}`;
+
   const options = {
     hostname: GATEWAY_HOST,
     port: GATEWAY_PORT,
     path: req.url,
     method: req.method,
-    headers: {
-      ...req.headers,
-      host: `${GATEWAY_HOST}:${GATEWAY_PORT}`,
-    }
+    headers: headers
   };
 
   const proxyReq = http.request(options);
@@ -68,7 +87,6 @@ server.on('upgrade', (req, socket, head) => {
   });
 
   proxyReq.on('response', (res) => {
-    // If we get a response instead of upgrade, something went wrong
     console.error('[wrapper] Expected upgrade but got response:', res.statusCode);
     socket.destroy();
   });
