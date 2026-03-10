@@ -13,7 +13,7 @@ ENV OPENCLAW_GATEWAY_TOKEN=iao-fund-gateway-token-2026
 ENV NODE_ENV=production
 ENV PORT=8080
 
-# Copy config to state dir FIRST
+# Copy config to state dir FIRST (OpenClaw reads from here)
 COPY openclaw.json /data/.openclaw/openclaw.json
 
 # Copy wrapper
@@ -28,10 +28,13 @@ EXPOSE 8080
 
 # Start script that runs gateway and wrapper
 RUN echo '#!/bin/bash\n\
+echo "[start] Config check:"\n\
+cat /data/.openclaw/openclaw.json\n\
+echo ""\n\
 echo "[start] Starting OpenClaw Gateway..."\n\
 \n\
-# Start gateway in background\n\
-openclaw gateway run --allow-unconfigured &\n\
+# Start gateway in background with explicit config path\n\
+OPENCLAW_CONFIG_PATH=/data/.openclaw/openclaw.json openclaw gateway run --allow-unconfigured &\n\
 GATEWAY_PID=$!\n\
 \n\
 # Wait for gateway to be ready\n\
