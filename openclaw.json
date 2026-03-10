@@ -19,15 +19,35 @@
     "defaults": {
       "workspace": "/data/.openclaw/workspace",
       "model": {
-        "primary": "anthropic/claude-opus-4"
+        "primary": "moonshot/kimi-k2.5"
       }
     }
   },
   "auth": {
     "profiles": {
-      "anthropic:default": {
-        "provider": "anthropic",
+      "moonshot:default": {
+        "provider": "moonshot",
         "mode": "api_key"
+      }
+    }
+  },
+  "models": {
+    "mode": "merge",
+    "providers": {
+      "moonshot": {
+        "baseUrl": "https://api.moonshot.ai/v1",
+        "api": "openai-completions",
+        "models": [
+          {
+            "id": "kimi-k2.5",
+            "name": "Kimi K2.5",
+            "reasoning": false,
+            "input": ["text", "image"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 256000,
+            "maxTokens": 8192
+          }
+        ]
       }
     }
   }
