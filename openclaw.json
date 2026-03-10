@@ -14,5 +14,9 @@
       "allowedOrigins": ["https://iao-fund-production.up.railway.app", "*"]
     }
   },
-  "workspace": "/data/.openclaw/workspace"
+  "agents": {
+    "defaults": {
+      "workspace": "/data/.openclaw/workspace"
+    }
+  }
 }
