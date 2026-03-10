@@ -1,6 +1,6 @@
 {
   "gateway": {
-    "port": 18789,
+    "port": 8080,
     "mode": "local",
     "bind": "0.0.0.0",
     "auth": {
