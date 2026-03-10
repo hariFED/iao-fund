@@ -8,7 +8,7 @@ const GATEWAY_PORT = 18789;
 console.log(`[wrapper] Starting on 0.0.0.0:${PORT}`);
 console.log(`[wrapper] Proxying to ${GATEWAY_HOST}:${GATEWAY_PORT}`);
 
-// Headers to strip to make the gateway think this is a local connection
+// Headers to strip (but keep Origin for CWS validation)
 const PROXY_HEADERS = [
   'x-forwarded-for',
   'x-forwarded-host',
@@ -29,11 +29,12 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // Strip proxy headers to make gateway treat as local
+  // Strip proxy headers but keep Origin
   const headers = { ...req.headers };
   for (const h of PROXY_HEADERS) {
     delete headers[h];
   }
+  // Ensure host is set correctly for the gateway
   headers.host = `${GATEWAY_HOST}:${GATEWAY_PORT}`;
 
   // Proxy HTTP requests to gateway
@@ -59,15 +60,16 @@ const server = http.createServer((req, res) => {
   req.pipe(proxyReq);
 });
 
-// Handle WebSocket upgrade - use raw TCP forwarding for better compatibility
+// Handle WebSocket upgrade - use raw TCP forwarding
 server.on('upgrade', (req, socket, head) => {
   console.log('[wrapper] WebSocket upgrade request:', req.url);
+  console.log('[wrapper] Origin:', req.headers.origin);
   
   // Create a raw TCP connection to the gateway
   const gatewaySocket = net.connect(GATEWAY_PORT, GATEWAY_HOST, () => {
     console.log('[wrapper] Connected to gateway, forwarding WebSocket');
     
-    // Build the HTTP upgrade request
+    // Build the HTTP upgrade request, preserving Origin
     const headers = { ...req.headers };
     for (const h of PROXY_HEADERS) {
       delete headers[h];
@@ -76,9 +78,13 @@ server.on('upgrade', (req, socket, head) => {
     
     let upgradeRequest = `${req.method} ${req.url} HTTP/${req.httpVersion}\r\n`;
     for (const [key, value] of Object.entries(headers)) {
-      upgradeRequest += `${key}: ${value}\r\n`;
+      if (value !== undefined && value !== null) {
+        upgradeRequest += `${key}: ${value}\r\n`;
+      }
     }
     upgradeRequest += '\r\n';
+    
+    console.log('[wrapper] Sending upgrade request:', upgradeRequest.substring(0, 200));
     
     // Send the upgrade request
     gatewaySocket.write(upgradeRequest);
