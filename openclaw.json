@@ -11,7 +11,7 @@
     "allowRealIpFallback": true,
     "controlUi": {
       "enabled": true,
-      "allowedOrigins": ["https://iao-fund-production.up.railway.app"]
+      "allowedOrigins": ["*"]
     }
   },
   "workspace": "/data/.openclaw/workspace"
