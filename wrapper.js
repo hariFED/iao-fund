@@ -1,5 +1,4 @@
 const http = require('http');
-const https = require('https');
 const net = require('net');
 
 const PORT = process.env.PORT || 8080;
@@ -60,59 +59,65 @@ const server = http.createServer((req, res) => {
   req.pipe(proxyReq);
 });
 
-// Handle WebSocket upgrade
+// Handle WebSocket upgrade - use raw TCP forwarding for better compatibility
 server.on('upgrade', (req, socket, head) => {
   console.log('[wrapper] WebSocket upgrade request:', req.url);
   
-  // Strip proxy headers
-  const headers = { ...req.headers };
-  for (const h of PROXY_HEADERS) {
-    delete headers[h];
-  }
-  headers.host = `${GATEWAY_HOST}:${GATEWAY_PORT}`;
-
-  const options = {
-    hostname: GATEWAY_HOST,
-    port: GATEWAY_PORT,
-    path: req.url,
-    method: req.method,
-    headers: headers
-  };
-
-  const proxyReq = http.request(options);
+  // Create a raw TCP connection to the gateway
+  const gatewaySocket = net.connect(GATEWAY_PORT, GATEWAY_HOST, () => {
+    console.log('[wrapper] Connected to gateway, forwarding WebSocket');
+    
+    // Build the HTTP upgrade request
+    const headers = { ...req.headers };
+    for (const h of PROXY_HEADERS) {
+      delete headers[h];
+    }
+    headers.host = `${GATEWAY_HOST}:${GATEWAY_PORT}`;
+    
+    let upgradeRequest = `${req.method} ${req.url} HTTP/${req.httpVersion}\r\n`;
+    for (const [key, value] of Object.entries(headers)) {
+      upgradeRequest += `${key}: ${value}\r\n`;
+    }
+    upgradeRequest += '\r\n';
+    
+    // Send the upgrade request
+    gatewaySocket.write(upgradeRequest);
+    
+    // If there's initial data, send it
+    if (head && head.length > 0) {
+      gatewaySocket.write(head);
+    }
+    
+    // Pipe data between sockets
+    gatewaySocket.pipe(socket);
+    socket.pipe(gatewaySocket);
+    
+    // Handle errors
+    gatewaySocket.on('error', (err) => {
+      console.error('[wrapper] Gateway socket error:', err.message);
+      socket.destroy();
+    });
+    
+    socket.on('error', (err) => {
+      console.error('[wrapper] Client socket error:', err.message);
+      gatewaySocket.destroy();
+    });
+    
+    gatewaySocket.on('close', () => {
+      console.log('[wrapper] Gateway socket closed');
+      socket.end();
+    });
+    
+    socket.on('close', () => {
+      console.log('[wrapper] Client socket closed');
+      gatewaySocket.end();
+    });
+  });
   
-  proxyReq.on('error', (err) => {
-    console.error('[wrapper] WS upgrade error:', err.message);
+  gatewaySocket.on('error', (err) => {
+    console.error('[wrapper] Failed to connect to gateway:', err.message);
     socket.destroy();
   });
-
-  proxyReq.on('response', (res) => {
-    console.error('[wrapper] Expected upgrade but got response:', res.statusCode);
-    socket.destroy();
-  });
-
-  proxyReq.on('upgrade', (res, proxySocket, proxyHead) => {
-    console.log('[wrapper] WebSocket upgraded successfully');
-    
-    // Send upgrade response to client
-    socket.write('HTTP/1.1 101 Switching Protocols\r\n' +
-                 'Upgrade: websocket\r\n' +
-                 'Connection: Upgrade\r\n' +
-                 '\r\n');
-    
-    // Pipe sockets together
-    proxySocket.pipe(socket);
-    socket.pipe(proxySocket);
-    
-    if (proxyHead && proxyHead.length) {
-      proxySocket.unshift(proxyHead);
-    }
-    if (head && head.length) {
-      socket.unshift(head);
-    }
-  });
-
-  proxyReq.end();
 });
 
 server.listen(PORT, '0.0.0.0', () => {
