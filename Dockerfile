@@ -23,4 +23,4 @@ WORKDIR /data/.openclaw/workspace
 
 EXPOSE 8080
 
-CMD ["sh", "-c", "openclaw gateway run --allow-unconfigured --auth token --token iao-fund-gateway-token-2026 --port $PORT"]
+CMD ["sh", "-c", "openclaw gateway run --allow-unconfigured --auth token --token iao-fund-gateway-token-2026 --port $PORT --bind lan"]

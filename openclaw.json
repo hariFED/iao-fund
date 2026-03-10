@@ -7,7 +7,7 @@
       "mode": "token",
       "token": "iao-fund-gateway-token-2026"
     },
-    "trustedProxies": ["*"]
+    "trustedProxies": ["0.0.0.0/0", "::/0"]
   },
   "workspace": "/data/.openclaw/workspace"
 }
