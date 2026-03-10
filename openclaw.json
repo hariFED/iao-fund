@@ -1,15 +1,17 @@
 {
   "gateway": {
     "mode": "local",
-    "port": 8080,
-    "bind": "0.0.0.0",
+    "port": 18789,
+    "bind": "loopback",
     "auth": {
       "mode": "token",
       "token": "iao-fund-gateway-token-2026"
     },
-    "trustedProxies": ["0.0.0.0/0", "::/0"],
+    "trustedProxies": ["127.0.0.1", "::1"],
+    "allowRealIpFallback": true,
     "controlUi": {
-      "enabled": false
+      "enabled": true,
+      "allowedOrigins": ["https://iao-fund-production.up.railway.app"]
     }
   },
   "workspace": "/data/.openclaw/workspace"
