@@ -30,6 +30,12 @@ EXPOSE 8080
 RUN echo '#!/bin/bash\n\
 echo "[start] Copying config to state dir..."\n\
 cp /app/openclaw.json /data/.openclaw/openclaw.json\n\
+echo "[start] Setting up auth profiles..."\n\
+mkdir -p /data/.openclaw/agents/main/agent\n\
+if [ -n "$MOONSHOT_API_KEY" ]; then\n\
+  echo "{\\"version\\":1,\\"profiles\\":{\\"moonshot:default\\":{\\"provider\\":\\"moonshot\\",\\"mode\\":\\"api_key\\",\\"apiKey\\":\\"$MOONSHOT_API_KEY\\"}}}" > /data/.openclaw/agents/main/agent/auth-profiles.json\n\
+  echo "[start] Auth profiles created with API key"\n\
+fi\n\
 echo "[start] Config check:"\n\
 ls -la /data/.openclaw/openclaw.json\n\
 cat /data/.openclaw/openclaw.json\n\
