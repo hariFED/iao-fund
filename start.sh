@@ -22,13 +22,41 @@ else
 fi
 
 if [ -n "$MOONSHOT_API_KEY" ]; then
-    echo "[start] Creating auth-profiles.json..."
-    printf '{"version":1,"profiles":{"moonshot:default":{"provider":"moonshot","mode":"api_key","apiKey":"%s"}}}' "$MOONSHOT_API_KEY" > /data/.openclaw/agents/main/agent/auth-profiles.json
-    echo "[start] Auth profiles created"
-    ls -la /data/.openclaw/agents/main/agent/auth-profiles.json
+    echo "[start] Creating auth-profiles.json in multiple locations..."
+    AUTH_JSON=$(printf '{"version":1,"profiles":{"moonshot:default":{"type":"api_key","provider":"moonshot","key":"%s"}}}' "$MOONSHOT_API_KEY")
+
+    # Write to all possible locations OpenClaw may look for auth profiles
+    mkdir -p /data/.openclaw/agents/main/agent
+    mkdir -p /data/.openclaw/credentials
+    mkdir -p /data/.openclaw/identity
+
+    echo "$AUTH_JSON" > /data/.openclaw/agents/main/agent/auth-profiles.json
+    echo "$AUTH_JSON" > /data/.openclaw/credentials/auth-profiles.json
+    echo "$AUTH_JSON" > /data/.openclaw/auth-profiles.json
+
+    echo "[start] Auth profiles created in multiple locations"
     echo "[start] Auth file contents (key hidden):"
-    cat /data/.openclaw/agents/main/agent/auth-profiles.json | sed 's/sk-[a-zA-Z0-9]*/sk-***HIDDEN***/g'
+    echo "$AUTH_JSON" | sed 's/sk-[a-zA-Z0-9]*/sk-***HIDDEN***/g'
     echo ""
+
+    # Also patch the openclaw.json to include the API key directly in the provider config
+    echo "[start] Patching openclaw.json with API key..."
+    if command -v node &> /dev/null; then
+        node -e "
+            const fs = require('fs');
+            const cfg = JSON.parse(fs.readFileSync('/data/.openclaw/openclaw.json', 'utf8'));
+            if (cfg.models && cfg.models.providers && cfg.models.providers.moonshot) {
+                cfg.models.providers.moonshot.apiKey = process.env.MOONSHOT_API_KEY;
+                cfg.models.providers.moonshot.key = process.env.MOONSHOT_API_KEY;
+            }
+            if (cfg.auth && cfg.auth.profiles && cfg.auth.profiles['moonshot:default']) {
+                cfg.auth.profiles['moonshot:default'].apiKey = process.env.MOONSHOT_API_KEY;
+                cfg.auth.profiles['moonshot:default'].key = process.env.MOONSHOT_API_KEY;
+            }
+            fs.writeFileSync('/data/.openclaw/openclaw.json', JSON.stringify(cfg, null, 2));
+            console.log('[start] openclaw.json patched with API key');
+        "
+    fi
 else
     echo "[error] MOONSHOT_API_KEY not set! Cannot create auth profiles."
 fi
