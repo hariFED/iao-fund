@@ -1,5 +1,6 @@
 const http = require('http');
 const net = require('net');
+const url = require('url');
 
 const PORT = process.env.PORT || 8080;
 const GATEWAY_HOST = '127.0.0.1';
@@ -21,6 +22,16 @@ const PROXY_HEADERS = [
   'via'
 ];
 
+// Inject auth token into URL query string for OpenClaw WebSocket protocol
+function injectTokenInUrl(originalUrl) {
+  const parsed = url.parse(originalUrl, true);
+  // OpenClaw expects token in connect.params.auth.token via query string
+  parsed.query['auth.token'] = GATEWAY_TOKEN;
+  // url.format uses `search` if present, so delete it to use `query`
+  delete parsed.search;
+  return url.format(parsed);
+}
+
 // Simple HTTP proxy server
 const server = http.createServer((req, res) => {
   // Health check endpoint
@@ -37,14 +48,14 @@ const server = http.createServer((req, res) => {
   }
   // Ensure host is set correctly for the gateway
   headers.host = `${GATEWAY_HOST}:${GATEWAY_PORT}`;
-  // Inject gateway auth token so users don't get prompted
+  // Also try Authorization header
   headers['authorization'] = `Bearer ${GATEWAY_TOKEN}`;
 
   // Proxy HTTP requests to gateway
   const options = {
     hostname: GATEWAY_HOST,
     port: GATEWAY_PORT,
-    path: req.url,
+    path: injectTokenInUrl(req.url),
     method: req.method,
     headers: headers
   };
@@ -67,64 +78,69 @@ const server = http.createServer((req, res) => {
 server.on('upgrade', (req, socket, head) => {
   console.log('[wrapper] WebSocket upgrade request:', req.url);
   console.log('[wrapper] Origin:', req.headers.origin);
-  
+
+  // Inject token into the WebSocket URL
+  const targetUrl = injectTokenInUrl(req.url);
+  console.log('[wrapper] Target URL with token:', targetUrl.replace(GATEWAY_TOKEN, '***'));
+
   // Create a raw TCP connection to the gateway
   const gatewaySocket = net.connect(GATEWAY_PORT, GATEWAY_HOST, () => {
     console.log('[wrapper] Connected to gateway, forwarding WebSocket');
-    
+
     // Build the HTTP upgrade request, preserving Origin
     const headers = { ...req.headers };
     for (const h of PROXY_HEADERS) {
       delete headers[h];
     }
     headers.host = `${GATEWAY_HOST}:${GATEWAY_PORT}`;
-    // Inject gateway auth token for WebSocket connections too
+    // Also set Authorization header as fallback
     headers['authorization'] = `Bearer ${GATEWAY_TOKEN}`;
 
-    let upgradeRequest = `${req.method} ${req.url} HTTP/${req.httpVersion}\r\n`;
+    // Use the token-injected URL
+    let upgradeRequest = `${req.method} ${targetUrl} HTTP/${req.httpVersion}\r\n`;
     for (const [key, value] of Object.entries(headers)) {
       if (value !== undefined && value !== null) {
         upgradeRequest += `${key}: ${value}\r\n`;
       }
     }
     upgradeRequest += '\r\n';
-    
-    console.log('[wrapper] Sending upgrade request:', upgradeRequest.substring(0, 200));
-    
+
+    console.log('[wrapper] Sending upgrade request (first 300 chars):', upgradeRequest.substring(0, 300));
+
     // Send the upgrade request
     gatewaySocket.write(upgradeRequest);
-    
+
     // If there's initial data, send it
     if (head && head.length > 0) {
       gatewaySocket.write(head);
     }
-    
+
     // Pipe data between sockets
     gatewaySocket.pipe(socket);
     socket.pipe(gatewaySocket);
-    
+
     // Handle errors
     gatewaySocket.on('error', (err) => {
       console.error('[wrapper] Gateway socket error:', err.message);
       socket.destroy();
     });
-    
+
     socket.on('error', (err) => {
       console.error('[wrapper] Client socket error:', err.message);
       gatewaySocket.destroy();
     });
-    
+
     gatewaySocket.on('close', () => {
       console.log('[wrapper] Gateway socket closed');
       socket.end();
     });
-    
+
     socket.on('close', () => {
       console.log('[wrapper] Client socket closed');
       gatewaySocket.end();
     });
   });
-  
+
   gatewaySocket.on('error', (err) => {
     console.error('[wrapper] Failed to connect to gateway:', err.message);
     socket.destroy();
