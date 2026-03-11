@@ -5,14 +5,20 @@ echo "========================================="
 echo "[start] OpenClaw Gateway Startup"
 echo "========================================="
 
-# --- 1. Copy config ---
-echo "[start] Copying config to state dir..."
-cp /app/openclaw.json /data/.openclaw/openclaw.json
-
-# --- 2. Create required directories ---
+# --- 1. Create required directories ---
 mkdir -p /data/.openclaw/identity
 mkdir -p /data/.openclaw/agents/main/agent
 mkdir -p /data/.openclaw/credentials
+mkdir -p /data/.openclaw/workspace
+
+# --- 2. Copy all files from staging to volume (overwrite with latest deploy) ---
+echo "[start] Syncing workspace files from deploy to volume..."
+cp -rf /app/workspace/* /data/.openclaw/workspace/ 2>/dev/null || true
+cp -rf /app/workspace/.* /data/.openclaw/workspace/ 2>/dev/null || true
+cp -f /app/openclaw.json /data/.openclaw/openclaw.json
+cp -f /app/wrapper.js /wrapper.js
+echo "[start] Workspace files synced."
+ls -la /data/.openclaw/workspace/
 
 # --- 3. Create .env file for OpenClaw to read API keys ---
 # OpenClaw reads API keys from environment variables, NOT from config files

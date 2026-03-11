@@ -18,20 +18,17 @@ ENV OPENCLAW_GATEWAY_TOKEN=iao-fund-gateway-token-2026
 ENV NODE_ENV=production
 ENV PORT=8080
 
-# Copy config to app dir (start.sh copies it to state dir at runtime)
+# Stage all files in /app (NOT on the volume path)
+# start.sh will copy them to the volume at runtime
+COPY . /app/workspace/
 COPY openclaw.json /app/openclaw.json
-
-# Copy wrapper proxy
-COPY wrapper.js /wrapper.js
-
-# Copy workspace files
-COPY . /data/.openclaw/workspace/
+COPY wrapper.js /app/wrapper.js
+COPY start.sh /app/start.sh
 
 WORKDIR /data/.openclaw/workspace
 
 EXPOSE 8080
 
-COPY start.sh /start.sh
-RUN chmod +x /start.sh
+RUN chmod +x /app/start.sh
 
-CMD ["/start.sh"]
+CMD ["/app/start.sh"]
