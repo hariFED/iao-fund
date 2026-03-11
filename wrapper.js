@@ -4,6 +4,7 @@ const net = require('net');
 const PORT = process.env.PORT || 8080;
 const GATEWAY_HOST = '127.0.0.1';
 const GATEWAY_PORT = 18789;
+const GATEWAY_TOKEN = process.env.OPENCLAW_GATEWAY_TOKEN || 'iao-fund-gateway-token-2026';
 
 console.log(`[wrapper] Starting on 0.0.0.0:${PORT}`);
 console.log(`[wrapper] Proxying to ${GATEWAY_HOST}:${GATEWAY_PORT}`);
@@ -36,6 +37,8 @@ const server = http.createServer((req, res) => {
   }
   // Ensure host is set correctly for the gateway
   headers.host = `${GATEWAY_HOST}:${GATEWAY_PORT}`;
+  // Inject gateway auth token so users don't get prompted
+  headers['authorization'] = `Bearer ${GATEWAY_TOKEN}`;
 
   // Proxy HTTP requests to gateway
   const options = {
@@ -75,7 +78,9 @@ server.on('upgrade', (req, socket, head) => {
       delete headers[h];
     }
     headers.host = `${GATEWAY_HOST}:${GATEWAY_PORT}`;
-    
+    // Inject gateway auth token for WebSocket connections too
+    headers['authorization'] = `Bearer ${GATEWAY_TOKEN}`;
+
     let upgradeRequest = `${req.method} ${req.url} HTTP/${req.httpVersion}\r\n`;
     for (const [key, value] of Object.entries(headers)) {
       if (value !== undefined && value !== null) {
