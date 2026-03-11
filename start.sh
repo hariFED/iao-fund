@@ -27,12 +27,16 @@ cat > /data/.openclaw/.env << 'ENVEOF'
 # Auto-generated at container startup
 ENVEOF
 
+if [ -n "$NVIDIA_API_KEY" ]; then
+    echo "NVIDIA_API_KEY=${NVIDIA_API_KEY}" >> /data/.openclaw/.env
+    echo "[start] NVIDIA_API_KEY written to .env (length: ${#NVIDIA_API_KEY})"
+else
+    echo "[warn] NVIDIA_API_KEY is NOT set in Railway environment variables!"
+    echo "[warn] Go to Railway > Service > Variables and add NVIDIA_API_KEY"
+fi
+
 if [ -n "$MOONSHOT_API_KEY" ]; then
     echo "MOONSHOT_API_KEY=${MOONSHOT_API_KEY}" >> /data/.openclaw/.env
-    echo "[start] MOONSHOT_API_KEY written to .env (length: ${#MOONSHOT_API_KEY})"
-else
-    echo "[warn] MOONSHOT_API_KEY is NOT set in Railway environment variables!"
-    echo "[warn] Go to Railway > Service > Variables and add MOONSHOT_API_KEY"
 fi
 
 if [ -n "$MOLTBOOK_API_KEY" ]; then
@@ -55,7 +59,7 @@ echo "[start] Environment check:"
 echo "  OPENCLAW_STATE_DIR=${OPENCLAW_STATE_DIR}"
 echo "  OPENCLAW_WORKSPACE_DIR=${OPENCLAW_WORKSPACE_DIR}"
 echo "  OPENCLAW_GATEWAY_TOKEN set: $([ -n "$OPENCLAW_GATEWAY_TOKEN" ] && echo 'yes' || echo 'no')"
-echo "  MOONSHOT_API_KEY set: $([ -n "$MOONSHOT_API_KEY" ] && echo 'yes' || echo 'no')"
+echo "  NVIDIA_API_KEY set: $([ -n "$NVIDIA_API_KEY" ] && echo 'yes' || echo 'no')"
 echo "  NODE_ENV=${NODE_ENV}"
 echo ""
 

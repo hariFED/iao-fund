@@ -19,14 +19,14 @@
     "defaults": {
       "workspace": "/data/.openclaw/workspace",
       "model": {
-        "primary": "moonshot/kimi-k2.5"
+        "primary": "nvidia/moonshotai/kimi-k2.5"
       }
     }
   },
   "auth": {
     "profiles": {
-      "moonshot:default": {
-        "provider": "moonshot",
+      "nvidia:default": {
+        "provider": "nvidia",
         "mode": "api_key"
       }
     }
@@ -34,12 +34,12 @@
   "models": {
     "mode": "merge",
     "providers": {
-      "moonshot": {
-        "baseUrl": "https://api.moonshot.ai/v1",
+      "nvidia": {
+        "baseUrl": "https://integrate.api.nvidia.com/v1",
         "api": "openai-completions",
         "models": [
           {
-            "id": "kimi-k2.5",
+            "id": "moonshotai/kimi-k2.5",
             "name": "Kimi K2.5",
             "reasoning": false,
             "input": ["text", "image"],
