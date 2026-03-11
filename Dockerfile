@@ -3,20 +3,25 @@ FROM node:22-slim
 RUN apt-get update && apt-get install -y git curl ca-certificates python3 make g++ \
     && rm -rf /var/lib/apt/lists/*
 
-RUN npm install -g openclaw
+# Install latest openclaw
+RUN npm install -g openclaw@latest
 
-RUN mkdir -p /data/.openclaw/workspace /data/.openclaw/canvas
+# Create state directories
+RUN mkdir -p /data/.openclaw/workspace /data/.openclaw/canvas /data/.openclaw/identity /data/.openclaw/credentials
 
+# OpenClaw environment variables
 ENV OPENCLAW_STATE_DIR=/data/.openclaw
 ENV OPENCLAW_WORKSPACE_DIR=/data/.openclaw/workspace
+ENV OPENCLAW_HOME=/data/.openclaw
+ENV OPENCLAW_CONFIG_DIR=/data/.openclaw
 ENV OPENCLAW_GATEWAY_TOKEN=iao-fund-gateway-token-2026
 ENV NODE_ENV=production
 ENV PORT=8080
 
-# Copy config to app dir (volume will override /data/.openclaw at runtime)
+# Copy config to app dir (start.sh copies it to state dir at runtime)
 COPY openclaw.json /app/openclaw.json
 
-# Copy wrapper
+# Copy wrapper proxy
 COPY wrapper.js /wrapper.js
 
 # Copy workspace files

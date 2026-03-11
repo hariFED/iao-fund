@@ -4,14 +4,14 @@
     "port": 18789,
     "bind": "lan",
     "auth": {
-      "mode": "token",
-      "token": "iao-fund-gateway-token-2026"
+      "mode": "token"
     },
     "trustedProxies": ["127.0.0.1", "::1", "0.0.0.0/0"],
     "allowRealIpFallback": true,
     "controlUi": {
       "enabled": true,
-      "allowedOrigins": ["https://iao-fund-production.up.railway.app", "*"],
+      "allowedOrigins": ["*"],
+      "allowInsecureAuth": true,
       "dangerouslyDisableDeviceAuth": true
     }
   },
