@@ -63,7 +63,7 @@ OPENCLAW_HOME=/data/.openclaw \
 OPENCLAW_CONFIG_DIR=/data/.openclaw \
   openclaw gateway run \
     --allow-unconfigured \
-    --bind lan \
+    --bind loopback \
     --auth token \
     --verbose &
 GATEWAY_PID=$!

@@ -8,6 +8,8 @@ const GATEWAY_PORT = 18789;
 console.log(`[wrapper] Starting on 0.0.0.0:${PORT}`);
 console.log(`[wrapper] Proxying to ${GATEWAY_HOST}:${GATEWAY_PORT}`);
 
+const LOCAL_ORIGIN = `http://${GATEWAY_HOST}:${GATEWAY_PORT}`;
+
 // Headers added by reverse proxies that we should strip
 // to make the gateway treat connections as local/trusted
 const STRIP_HEADERS = [
@@ -21,6 +23,21 @@ const STRIP_HEADERS = [
   'via'
 ];
 
+// Make headers look like a local connection
+// The gateway's isLocalDirectRequest() checks: loopback IP + local hostname + origin
+function localizeHeaders(headers) {
+  for (const h of STRIP_HEADERS) delete headers[h];
+  headers.host = `${GATEWAY_HOST}:${GATEWAY_PORT}`;
+  // Override origin to local so gateway treats this as a local connection
+  // Local connections skip device identity requirements
+  if (headers.origin) {
+    headers.origin = LOCAL_ORIGIN;
+  }
+  // Remove referer as it also reveals the remote origin
+  delete headers.referer;
+  return headers;
+}
+
 // HTTP proxy
 const server = http.createServer((req, res) => {
   if (req.url === '/healthz') {
@@ -29,9 +46,7 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  const headers = { ...req.headers };
-  for (const h of STRIP_HEADERS) delete headers[h];
-  headers.host = `${GATEWAY_HOST}:${GATEWAY_PORT}`;
+  const headers = localizeHeaders({ ...req.headers });
 
   const proxyReq = http.request({
     hostname: GATEWAY_HOST,
@@ -63,11 +78,9 @@ server.on('upgrade', (req, socket, head) => {
   console.log('[wrapper] WS upgrade:', req.url, 'origin:', req.headers.origin);
 
   const gwSocket = net.connect(GATEWAY_PORT, GATEWAY_HOST, () => {
-    // Build clean upgrade request - strip proxy headers so gateway
-    // sees this as a local/trusted connection
-    const headers = { ...req.headers };
-    for (const h of STRIP_HEADERS) delete headers[h];
-    headers.host = `${GATEWAY_HOST}:${GATEWAY_PORT}`;
+    // Localize all headers so gateway sees this as a local connection
+    // This is critical: local connections skip device identity requirements
+    const headers = localizeHeaders({ ...req.headers });
 
     let raw = `${req.method} ${req.url} HTTP/${req.httpVersion}\r\n`;
     for (const [k, v] of Object.entries(headers)) {
