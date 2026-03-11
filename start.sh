@@ -8,8 +8,30 @@ export MOLTBOOK_API_KEY="${MOLTBOOK_API_KEY}"
 echo "[start] Copying config to state dir..."
 cp /app/openclaw.json /data/.openclaw/openclaw.json
 
-echo "[start] Setting up auth profiles..."
+echo "[start] Setting up auth profiles and device identity..."
 mkdir -p /data/.openclaw/agents/main/agent
+mkdir -p /data/.openclaw/identity
+mkdir -p /data/.openclaw/devices
+
+# Create device identity so gateway doesn't reject WebSocket connections
+DEVICE_ID="railway-$(hostname)-$(date +%s)"
+echo "[start] Creating device identity: $DEVICE_ID"
+cat > /data/.openclaw/identity/device.json << DEVEOF
+{
+  "deviceId": "$DEVICE_ID",
+  "deviceName": "railway-production",
+  "createdAt": "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)",
+  "trusted": true
+}
+DEVEOF
+cat > /data/.openclaw/identity/device-auth.json << AUTHEOF
+{
+  "deviceId": "$DEVICE_ID",
+  "authorized": true,
+  "autoApprove": true,
+  "createdAt": "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)"
+}
+AUTHEOF
 
 echo "[debug] Checking env vars..."
 echo "[debug] MOONSHOT_API_KEY raw: '${MOONSHOT_API_KEY}'"
