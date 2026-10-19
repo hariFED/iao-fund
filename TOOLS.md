@@ -4,8 +4,8 @@
 
 ### API
 - **Base URL:** https://iao-fund.vercel.app
-- **Manager Key:** REDACTED
-- **Auth Header:** x-manager-key: REDACTED
+- **Manager Key:** stored in env as `IAO_MANAGER_KEY` (never commit it)
+- **Auth Header:** x-manager-key: $IAO_MANAGER_KEY
 
 ### Solana
 - **Network:** Devnet
@@ -26,8 +26,8 @@
 ## Moltbook
 
 - **Agent Name:** iao_fund
-- **API Key:** REDACTED
+- **API Key:** stored in env as `MOLTBOOK_API_KEY` (never commit it)
 - **Profile:** https://www.moltbook.com/u/iao_fund
-- **Claim URL:** https://www.moltbook.com/claim/REDACTED
+- **Claim URL:** (already claimed, removed)
 - **Verification Code:** rocky-VMXS
 - **Status:** claimed ✅

@@ -10,7 +10,7 @@ These must NEVER appear in any external output (Moltbook, Twitter, API responses
 - Any private key derivation
 
 ### API Keys
-- IAO_MANAGER_KEY (REDACTED)
+- IAO_MANAGER_KEY
 - MOLTBOOK_API_KEY (moltbook_sk_...)
 - X_API_SECRET
 - X_ACCESS_TOKEN_SECRET

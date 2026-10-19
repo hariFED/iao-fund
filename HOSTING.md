@@ -78,16 +78,16 @@ After=network.target
 Type=simple
 User=openclaw
 Environment="IAO_API_BASE=https://iao-fund.vercel.app"
-Environment="IAO_MANAGER_KEY=REDACTED"
+Environment="IAO_MANAGER_KEY=CHANGE_ME"
 Environment="SOLANA_RPC_URL=https://api.devnet.solana.com"
 Environment="PLATFORM_WALLET=8i3Mept58tXY85UeP1AeH3yS6DqD9GK4o8NsMapHG7w4"
 Environment="IAO_PROGRAM_ID=DKhkk9pdyEE5XAvBjpjaB642RkpxJXqRqa7qTT6PmAuw"
-Environment="X_API_KEY=REDACTED"
-Environment="X_API_SECRET=REDACTED"
-Environment="X_ACCESS_TOKEN=REDACTED"
-Environment="X_ACCESS_TOKEN_SECRET=REDACTED"
-Environment="MOLTBOOK_API_KEY=REDACTED"
-Environment="DATABASE_URL=postgresql://neondb_owner:REDACTED@ep-plain-cherry-adyiqg2d-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+Environment="X_API_KEY=CHANGE_ME"
+Environment="X_API_SECRET=CHANGE_ME"
+Environment="X_ACCESS_TOKEN=CHANGE_ME"
+Environment="X_ACCESS_TOKEN_SECRET=CHANGE_ME"
+Environment="MOLTBOOK_API_KEY=CHANGE_ME"
+Environment="DATABASE_URL=postgresql://USER:PASSWORD@HOST/neondb?sslmode=require&channel_binding=require"
 WorkingDirectory=/home/openclaw/.openclaw/workspace
 ExecStart=/usr/bin/openclaw gateway start
 Restart=always
@@ -142,12 +142,12 @@ services:
     restart: always
     environment:
       - IAO_API_BASE=https://iao-fund.vercel.app
-      - IAO_MANAGER_KEY=${IAO_MANAGER_KEY}
-      - MOLTBOOK_API_KEY=${MOLTBOOK_API_KEY}
-      - X_API_KEY=${X_API_KEY}
-      - X_API_SECRET=${X_API_SECRET}
-      - X_ACCESS_TOKEN=${X_ACCESS_TOKEN}
-      - X_ACCESS_TOKEN_SECRET=${X_ACCESS_TOKEN_SECRET}
+      - IAO_MANAGER_KEY=CHANGE_ME
+      - MOLTBOOK_API_KEY=CHANGE_ME
+      - X_API_KEY=CHANGE_ME
+      - X_API_SECRET=CHANGE_ME
+      - X_ACCESS_TOKEN=CHANGE_ME
+      - X_ACCESS_TOKEN_SECRET=CHANGE_ME
     volumes:
       - ./workspace:/app/.openclaw/workspace
     ports:
@@ -197,22 +197,22 @@ pm2 save
 ```bash
 # IAO Platform
 IAO_API_BASE=https://iao-fund.vercel.app
-IAO_MANAGER_KEY=REDACTED
+IAO_MANAGER_KEY=CHANGE_ME
 PLATFORM_WALLET=8i3Mept58tXY85UeP1AeH3yS6DqD9GK4o8NsMapHG7w4
 IAO_PROGRAM_ID=DKhkk9pdyEE5XAvBjpjaB642RkpxJXqRqa7qTT6PmAuw
 SOLANA_RPC_URL=https://api.devnet.solana.com
 
 # Twitter/X
-X_API_KEY=REDACTED
-X_API_SECRET=REDACTED
-X_ACCESS_TOKEN=REDACTED
-X_ACCESS_TOKEN_SECRET=REDACTED
+X_API_KEY=CHANGE_ME
+X_API_SECRET=CHANGE_ME
+X_ACCESS_TOKEN=CHANGE_ME
+X_ACCESS_TOKEN_SECRET=CHANGE_ME
 
 # Moltbook
-MOLTBOOK_API_KEY=REDACTED
+MOLTBOOK_API_KEY=CHANGE_ME
 
 # Database
-DATABASE_URL=postgresql://neondb_owner:REDACTED@ep-plain-cherry-adyiqg2d-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+DATABASE_URL=postgresql://USER:PASSWORD@HOST/neondb?sslmode=require&channel_binding=require
 
 # Optional
 OPENCLAW_MODEL=moonshot/kimi-k2.5
